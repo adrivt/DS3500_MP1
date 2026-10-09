@@ -12,8 +12,16 @@ import argparse
 import logging
 import sys
 from pathlib import Path
-from data_loaders import load_data
-from data_processor import process_data, create_cleaning_report
+from src import (
+    create_cleaning_report,
+    load_data,
+    process_data,
+    save_data,
+    setup_logging,
+    validate_dataframe,
+    validate_input,
+)
+
 
 
 
@@ -93,19 +101,35 @@ def main():
         logger.error(f"Failed to load data: {e}")
         sys.exit(1)
         
-    df_before = data.copy()
+    required_columns = config["validation"]["required_columns"]
+    numeric_columns = config["validation"]["numeric_columns"]
 
+    rows_before_validation = len(data)
+    try:
+        data = validate_dataframe(data, required_columns, numeric_columns)
+    except ValueError as e:
+        logger.error(f"Validation failed: {e}")
+        sys.exit(1)
+        
+    df_before = data.copy()
+    
+    #Log the number of rows before and after validation at the INFO level.
+    logger.info(f"Rows before validation: {rows_before_validation}. Rows after validation: {len(df_before)}")
+    
     try:
         df_after = process_data(data, config)
-    except ValueError:
+    except ValueError as e:
+        logger.error(f"Processing failed: {e}")
         sys.exit(1)
 
     report = create_cleaning_report(df_before, df_after)
     print(report)
-    logger.info(f"Processing complete: {report['rows_before']} → {report['rows_after']} rows")
+    logger.info(
+        f"Processing complete: {report['rows_before']} -> {report['rows_after']} rows"
+    )
 
-    df_after.to_csv(args.output, index=False)
-    logger.info(f"Saved cleaned data to {args.output}")
+    output_path = save_data(df_after, args.output)
+    logger.info(f"Saved cleaned data to {output_path}")
 
 
 if __name__ == "__main__":
