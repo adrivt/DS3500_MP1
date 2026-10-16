@@ -54,7 +54,7 @@ def remove_outliers(df, columns, method, threshold):
                         df_score_cleaned = df[(df[col] >= lower) & (df[col] <= upper)]
                         after=len(df_score_cleaned)
                         logger.debug("Method: %s.  Threshold: %s. Rows removed: %s", method, threshold, before-after)
-                        return df
+                        return df_score_cleaned
             else:
                 for col in columns:
                     if col not in df.columns:
@@ -70,7 +70,7 @@ def remove_outliers(df, columns, method, threshold):
                         df_score_cleaned = df[z_scores.abs() <= threshold]
                         after=len(df_score_cleaned)
                         logger.debug("Method: %s.  Threshold: %s. Rows removed: %s", method, threshold, before-after)
-                        return df
+                        return df_score_cleaned
         except ValueError: 
             logger.error("Something went wrong!")
             return df
