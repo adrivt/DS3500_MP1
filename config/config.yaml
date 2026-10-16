@@ -9,14 +9,14 @@ validation:
     - rating
 
 processing:
-  remove_duplicates: true
+  remove_duplicates: false
 
   missing:
     enabled: true
     axis: "rows"
 
   outliers:
-    enabled: true
+    enabled: false
     columns:
       - rating
     method: "iqr"
